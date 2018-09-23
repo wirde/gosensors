@@ -1,6 +1,7 @@
 package main
 import (
         "log"
+        "encoding/json"
         "net/http"
         "strconv"
 )
@@ -9,7 +10,7 @@ func main() {
         log.Println("Starting server")
         http.HandleFunc("/", HandleRequest)
 
-        var err = http.ListenAndServe(":" + strconv.Itoa(10000), nil)
+        err := http.ListenAndServe(":" + strconv.Itoa(10000), nil)
         if err != nil {
                 log.Panicln("Server failed starting. Error: %s", err)
         }
@@ -23,7 +24,15 @@ func HandleRequest(w http.ResponseWriter, r *http.Request) {
                 break
         case http.MethodPost:
                 log.Println("Post")
-                log.Println(r.Body)
+                var sensorData SensorData
+                err := json.NewDecoder(r.Body).Decode(sensorData)
+                if err != nil {
+                        log.Println("Got data: ")
+                        log.Println(sensorData)
+                } else {
+                        log.Println("Failed: ")
+                        log.Println(err)
+                }
                 break
         case http.MethodDelete:
                 log.Println("Delete")
@@ -46,4 +55,9 @@ func HandleError(w *http.ResponseWriter, code int, responseText string, logMessa
         log.Println(logMessage, errorMessage)
         writer.WriteHeader(code)
         writer.Write([]byte(responseText))
+}
+
+type SensorData struct {
+        id string
+        value string
 }
