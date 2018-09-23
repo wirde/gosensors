@@ -1,10 +1,15 @@
 package main
 import (
+        "os"
+        "fmt"
+        "bufio"
         "log"
         "encoding/json"
         "net/http"
         "strconv"
 )
+
+var EVENTS_DIR = "./test_dir"
 
 func main() {
         log.Println("Starting server")
@@ -27,9 +32,10 @@ func HandleRequest(w http.ResponseWriter, r *http.Request) {
 
                 var sensorData SensorData
                 err := json.NewDecoder(r.Body).Decode(&sensorData)
-                if err != nil {
+                if err == nil {
                         log.Println("Got data: ")
                         log.Println(sensorData)
+                        writeFile(sensorData)
                 } else {
                         log.Println("Failed: ")
                         log.Println(err)
@@ -43,6 +49,14 @@ func HandleRequest(w http.ResponseWriter, r *http.Request) {
                 break
 
         }
+}
+
+func writeFile(sensorData SensorData) {
+        f, err := os.Create(fmt.Sprintf("%s/%s-%s", EVENTS_DIR, sensorData.Id, sensorData.Type))
+        check(err)
+        w := bufio.NewWriter(f)
+        err = json.NewEncoder(w).Encode(&sensorData)
+        check(err)
 }
 
 func HandleError(w *http.ResponseWriter, code int, responseText string, logMessage string, err error) {
@@ -60,5 +74,13 @@ func HandleError(w *http.ResponseWriter, code int, responseText string, logMessa
 
 type SensorData struct {
         Id string
+        Type string
         Value string
+}
+
+        
+func check(e error) {
+    if e != nil {
+        panic(e)
+    }
 }
