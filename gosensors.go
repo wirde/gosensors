@@ -4,6 +4,7 @@ import (
         "encoding/json"
         "net/http"
         "strconv"
+        "bytes"
 )
 
 func main() {
@@ -24,6 +25,11 @@ func HandleRequest(w http.ResponseWriter, r *http.Request) {
                 break
         case http.MethodPost:
                 log.Println("Post")
+                buf := new(bytes.Buffer)
+                buf.ReadFrom(r.Body)
+                contents := buf.String()
+                log.Println(contents)
+
                 var sensorData SensorData
                 err := json.NewDecoder(r.Body).Decode(sensorData)
                 if err != nil {
